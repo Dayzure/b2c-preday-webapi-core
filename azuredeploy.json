@@ -1,0 +1,134 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "siteName": {
+      "type": "string"
+    },
+    "hostingPlanName": {
+      "type": "string"
+    },
+    "siteLocation": {
+      "type": "string"
+    },
+    "sku": {
+      "type": "string",
+      "allowedValues": [
+        "Free",
+        "Shared",
+        "Basic",
+        "Standard"
+      ],
+      "defaultValue": "Basic"
+    },
+    "workerSize": {
+      "type": "string",
+      "allowedValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "defaultValue": "0"
+    },
+    "repoUrl": {
+      "type": "string"
+    },
+    "branch": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2014-06-01",
+      "location": "[parameters('siteLocation')]",
+      "name": "[parameters('hostingPlanName')]",
+      "properties": {
+        "name": "[parameters('hostingPlanName')]",
+        "sku": "[parameters('sku')]",
+        "workerSize": "[parameters('workerSize')]",
+        "numberOfWorkers": 1
+      },
+      "type": "Microsoft.Web/serverFarms"
+    },
+    {
+      "apiVersion": "2014-06-01",
+      "name": "[parameters('siteName')]",
+      "type": "Microsoft.Web/Sites",
+      "location": "[parameters('siteLocation')]",
+      "dependsOn": [
+        "[concat('Microsoft.Web/serverFarms/', parameters('hostingPlanName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "empty"
+      },
+      "properties": {
+        "name": "[parameters('siteName')]",
+        "serverFarm": "[parameters('hostingPlanName')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2014-04-01",
+          "type": "config",
+          "name": "web",
+          "dependsOn": [
+            "[concat('Microsoft.Web/Sites/', parameters('siteName'))]"
+          ],
+          "properties": {
+            "appSettings": [
+              {
+                "name": "AzureAdB2C:Instance",
+                "value": "https://snetga.b2clogin.com/tfp/"
+              },
+              {
+                "name": "AzureAdB2C:ClientId",
+                "value": "11111111-2222-3333-4444-0123456789ab"
+              },
+              {
+                "name": "AzureAdB2C:Domain",
+                "value": "snetga.onmicrosoft.com"
+              },
+              {
+                "name": "AzureAdB2C:SignUpSignInPolicyId",
+                "value": "b2c_1_empty"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2014-04-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]",
+            "[concat('Microsoft.Web/Sites/', parameters('siteName'), '/config/web')]"
+          ],
+          "properties": {
+            "RepoUrl": "[parameters('repoUrl')]",
+            "branch": "[parameters('branch')]",
+            "IsManualIntegration": true
+          }
+        },
+        {
+          "name": "MSDeploy",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+          ],
+          "tags": {
+            "displayName": "webDeploy"
+          },
+          "properties": {
+            "packageUri": "[concat(parameters('repoUrl'), '/raw/',parameters('branch'),'/msdeploy/b2c-webapi-core.zip')]",
+            "dbType": "None",
+            "connectionString": "",
+            "setParameters": {
+              "IIS Web Application Name": "[parameters('siteName')]"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
