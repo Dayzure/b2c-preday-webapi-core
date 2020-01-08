@@ -106,7 +106,7 @@
             "displayName": "webDeploy"
           },
           "properties": {
-            "packageUri": "[concat(parameters('repoUrl'), '/raw/',parameters('branch'),'/msdeploy/b2c-webapi-core.zip')]",
+            "packageUri": "https://github.com/Dayzure/b2c-preday-webapi-core/raw/master/msdeploy/b2c-webapi-core.zip",
             "dbType": "None",
             "connectionString": "",
             "setParameters": {
