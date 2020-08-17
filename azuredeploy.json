@@ -6,11 +6,11 @@
       "type": "string"
     },
     "location": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "Location for all resources."
-      }      
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata":{
+            "description": "Location for all resources."
+        }
     }
   },
   "variables": {
@@ -40,7 +40,7 @@
         "[concat('Microsoft.Web/serverFarms/', variables('hostingPlanName'))]"
       ],
       "tags": {
-        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "empty"
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]": "empty"
       },
       "properties": {
         "name": "[parameters('siteName')]",
